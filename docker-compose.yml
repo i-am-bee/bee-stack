@@ -1,20 +1,20 @@
 services:
   bee-api:
-    build:
-      context: bee-api
-      dockerfile: ./Dockerfile
     user: root
     depends_on:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
+    image: iambeeagent/bee-api:0.0.1
     command: >
-      /bin/sh -c "
-      if [ ! -f /seederflag/seeded ]; then
-          NODE_OPTIONS='--import tsx' npx mikro-orm seeder:run && echo "yes" >> /seederflag/seeded
+      /bin/sh -c '
+      output=$(npx mikro-orm seeder:run 2>&1);
+      echo "$$output";
+      if ! (echo "$$output" | grep -qiE "already seeded|success"); then
+        echo "Error occured" && exit 1;
       fi &&
       node --enable-source-maps ./dist/server.js
-      "
+      '
     environment:
       # BACKENDS
       LLM_BACKEND: ${LLM_BACKEND:-watsonx}
@@ -63,9 +63,9 @@ services:
 
       # Required env variables used only in migrations
       USER_ID_DEFAULT: dummy
-      ORGANIZATION_ID_DEFAULT: dummy
+      PROJECT_ID_DEFAULT: proj_670cc04869ddffe24f4fd70f
+      ORGANIZATION_ID_DEFAULT: org_670cc04869ddffe24f4fd70d
       ORGANIZATION_OWNER_ID_DEFAULT: dummy
-      PROJECT_ID_DEFAULT: dummy
       PROJECT_ADMIN_ID_DEFAULT: dummy
       AUTH_CLIENT_ID: dummy
       AUTH_CLIENT_SECRET: dummy
@@ -79,33 +79,19 @@ services:
       start_period: 5s
     volumes:
       - code-interpreter-storage:/storage
-      - bee-api-seeder-flag:/seederflag
-      - ./bee-api/seeders:/app/seeders
-      - ./bee-api/src:/app/src
-      - ./bee-api/tsconfig.json:/app/tsconfig.json
     ports:
       - "4000:4000"
     profiles: [ all ]
 
-
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    build:
-      args:
-        NEXT_PUBLIC_APP_NAME: "Bee"
-        NEXT_PUBLIC_FEATURE_FLAGS: '{ "Knowledge": false, "Files": true, "FunctionTools": true, "Observe": true }'
-        NEXT_PUBLIC_ORGANIZATION_ID_DEFAULT: "org_670cc04869ddffe24f4fd70d"
-        NEXT_PUBLIC_PROJECT_ID_DEFAULT: "proj_670cc04869ddffe24f4fd70f"
-      context: bee-ui
-      dockerfile: ./Dockerfile
+    image: iambeeagent/bee-ui-local:0.0.1
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
       API_URL: http://bee-api:4000
       DUMMY_JWT_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiVGVzdCBVc2VyIiwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3QiLCJhdWQiOiJiZWUtdGVzdCJ9.vwkGnl7lBbzJYk6BtoW3VoA3mnNJVI-nDQU8aK7zOH-rkf2pn5cn6CKwpq7enDInIXro8WtBLNZP8Nr8GQIZKahICuP3YrPRmzv7YIW8LuXKnx1hycg5OAtj0OtQi5FYwwCxTYW9pBF2it7XwQSBcW7yYsOrvgs7jVhThCOsavX0YiAROxZIhk1idZT4Pl3egfUI_dy9iBxcn7xocTnos-94wqJNt8oCVgB8ynj75yJFHJbiQ-9Tym_V3LcMHoEyv67Jzie8KugCgdpuF6EbQqcyfYJ83q5jJpR2LiuWMuGsNSbjjDY-f1vCSMo9L9-R8KFrDylT_BzLvRBswOzW7A"
-
-
     profiles: [ all ]
     ports:
       - "3000:3000"
@@ -267,7 +253,6 @@ services:
       - 19531:3000
     profiles: [ all, infra ]
 volumes:
-  bee-api-seeder-flag:
   etcd:
   minio:
   milvus:

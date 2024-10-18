@@ -1,7 +1,0 @@
-[submodule "bee-api"]
-	path = bee-api
-	url = git@github.ibm.com:Incubation/bee-api.git
-	branch = local-file-system-support
-[submodule "bee-ui"]
-	path = bee-ui
-	url = git@github.ibm.com:Incubation/bee-ui.git
