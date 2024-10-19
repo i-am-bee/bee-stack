@@ -86,7 +86,7 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: iambeeagent/bee-ui-local:0.0.1
+    image: iambeeagent/bee-ui-local:0.0.2
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
