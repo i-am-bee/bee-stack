@@ -22,10 +22,11 @@ compose ([Rancher desktop](https://docs.rancherdesktop.io/) or [Podman](https://
 
 ## Usage 🏃‍♀️
 
-1. Clone this repository with submodules
+1. Clone this repository
 
 ```shell
-git clone --recurse-submodules https://github.com/i-am-bee/bee-stack.git
+git clone https://github.com/i-am-bee/bee-stack.git
+cd bee-stack
 ```
 
 2. Configure environment and fill required variables
@@ -66,12 +67,6 @@ docker compose --profile all down --volumes
 ```
 
 ## Advanced 👷
-
-If you made any changes in any of the submodules, rebuild using:
-
-```shell
-docker compose --profile all up -d --build
-```
 
 If you are a developer on `bee-api` or `bee-ui` and want to run only the supporting infrastructure,
 use the profile `infra`, e.g.:
