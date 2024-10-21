@@ -114,7 +114,7 @@ services:
       REDIS_URL: redis://redis:6379/1
       MONGODB_URL: mongodb://mongo:27017?directConnection=true
       DATA_EXPIRATION_IN_DAYS: 7
-      MLFLOW_API_URL: http://mlflow:5000/
+      MLFLOW_API_URL: http://mlflow:8080/
       MLFLOW_DEFAULT_EXPERIMENT_ID: 0
       MLFLOW_AUTHORIZATION: BASE_AUTH
       MLFLOW_USERNAME: user
