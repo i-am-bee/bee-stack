@@ -177,12 +177,12 @@ services:
   mlflow:
     image: bitnami/mlflow:2.16.2
     ports:
-      - '${MLFLOW_EXPOSED_PORT:-15000}:5000'
+      - '${MLFLOW_EXPOSED_PORT:-8080}:8080'
     security_opt:
       - "label=disable"
     environment:
       GUNICORN_CMD_ARGS: "--timeout=600"
-    entrypoint: [ "/bin/bash", "-c", "/entrypoint.sh && mlflow server --host 0.0.0.0 --port 5000" ]
+    entrypoint: [ "/bin/bash", "-c", "/entrypoint.sh && mlflow server --host 0.0.0.0 --port 8080" ]
     volumes:
       - mlflow:/app
       - ./mlflow-entrypoint.sh:/entrypoint.sh:ro

@@ -45,7 +45,7 @@ docker compose --profile all up -d
 Once started you can find use the following URLs:
 
 - bee-ui: http://localhost:3000
-- mlflow: http://localhost:15000
+- mlflow: http://localhost:8080
 - bee-api: http://localhost:4000 (for direct use of the api, use apiKey `sk-testkey`)
 - list all open ports: `docker compose ps --format "{{.Names}}: {{.Ports}}"`
 
