@@ -22,7 +22,7 @@ services:
       WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID}
       WATSONX_API_KEY: ${WATSONX_API_KEY}
       BAM_API_KEY: ${BAM_API_KEY:-dummy}
-
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy}
 
       MONGODB_URL: mongodb://mongo:27017?directConnection=true
       MONGODB_DATABASE_NAME: bee-api
