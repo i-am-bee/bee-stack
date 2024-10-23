@@ -36,6 +36,8 @@ cp example.env .env
 vim .env # fill in your API key
 ```
 
+> ⚠️ Warning: If you change providers, the default bee will stop working, because it is configured with a model from the previous provider. You should create a new Bee or remove all data using `docker compose --profile all down --volumes`.
+
 3. Up! (this might take a while the first time you run it)
 
 ```shell
