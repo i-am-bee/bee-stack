@@ -68,11 +68,31 @@ docker compose --profile all down --volumes
 
 ## Advanced 👷
 
+### Development
 If you are a developer on `bee-api` or `bee-ui` and want to run only the supporting infrastructure,
 use the profile `infra`, e.g.:
 
 ```shell
 docker compose --profile infra up -d
+```
+### Connecting to host resources
+
+There are many networking options in both [Podman](https://github.com/containers/podman/blob/main/docs/tutorials/basic_networking.md) and [Docker](https://docs.docker.com/engine/network/)
+
+The bee stack does not explicitly configure a network, so by default typically a bridge network is generated automatically. Additionally a specific host name is made available to the container which represents the host. This can be used to access other services on that host, such as ollama running locally.
+
+The hostnames are:
+* host.containers.internal (podman)
+* host.docker.internal (docker)
+
+Below is an example `.env` configuration for a podman environment which will allow the bee stack to connect back to ollama running on the host
+```
+LLM_BACKEND=ollama
+EMBEDDING_BACKEND=ollama
+WATSONX_PROJECT_ID=
+WATSONX_API_KEY=
+WATSONX_REGION=us-south
+OLLAMA_URL=http://host.containers.internal:11434
 ```
 
 # Contributing
