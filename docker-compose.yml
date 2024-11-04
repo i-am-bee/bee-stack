@@ -60,7 +60,7 @@ services:
       # Used to encrypt/decrypt values
       # You can use `$ openssl rand -base64 32` to generate new one
       CRYPTO_CIPHER_KEY: random_crypto_key
-      OTEL_SDK_DISABLED: true
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4318
 
       # Required env variables used only in migrations
       USER_ID_DEFAULT: dummy
@@ -93,6 +93,7 @@ services:
       NEXTAUTH_SECRET: top-secret
       API_URL: http://bee-api:4000
       DUMMY_JWT_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiVGVzdCBVc2VyIiwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3QiLCJhdWQiOiJiZWUtdGVzdCJ9.vwkGnl7lBbzJYk6BtoW3VoA3mnNJVI-nDQU8aK7zOH-rkf2pn5cn6CKwpq7enDInIXro8WtBLNZP8Nr8GQIZKahICuP3YrPRmzv7YIW8LuXKnx1hycg5OAtj0OtQi5FYwwCxTYW9pBF2it7XwQSBcW7yYsOrvgs7jVhThCOsavX0YiAROxZIhk1idZT4Pl3egfUI_dy9iBxcn7xocTnos-94wqJNt8oCVgB8ynj75yJFHJbiQ-9Tym_V3LcMHoEyv67Jzie8KugCgdpuF6EbQqcyfYJ83q5jJpR2LiuWMuGsNSbjjDY-f1vCSMo9L9-R8KFrDylT_BzLvRBswOzW7A"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4318
     profiles: [ all ]
     ports:
       - "3000:3000"
@@ -253,6 +254,11 @@ services:
     ports:
       - 19531:3000
     profiles: [ all, infra ]
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.112.0
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
 volumes:
   etcd:
   minio:
