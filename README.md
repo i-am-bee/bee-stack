@@ -1,8 +1,6 @@
 # 🐝 Bee Stack
 
-<p align="center">
-    <img alt="Bee Stack in action" src="https://ibm.box.com/shared/static/nct1d9dpvrgmmunmeb56h8yayjxe2hpd.gif">
-</p>
+![Bee Stack Demo Video](./docs/assets/bee-stack-demo.gif)
 
 The Bee Stack repository provides everything you need to run the Bee Application Stack locally using **Docker Compose**. This setup allows you to run, test, and experiment with Bee's various components seamlessly.
 
