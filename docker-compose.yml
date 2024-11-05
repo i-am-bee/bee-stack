@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: iambeeagent/bee-api:0.0.5
+    image: icr.io/i-am-bee/bee-api:0.0.6
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -87,7 +87,7 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: iambeeagent/bee-ui-local:0.0.2
+    image: icr.io/i-am-bee/bee-ui-local:0.0.3
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
@@ -98,7 +98,7 @@ services:
       - "3000:3000"
 
   bee-observe:
-    image: iambeeagent/bee-observe:0.0.3
+    image: icr.io/i-am-bee/bee-observe:0.0.4
     depends_on:
       - mlflow
       - mongo
