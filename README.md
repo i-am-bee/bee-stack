@@ -17,7 +17,6 @@ The Bee Stack comprises the following components, each contributing distinct fun
 ![architecture](./docs/assets/architecture.svg)
 
 ## 🔧 Pre-requisities
-
 **[Docker](https://www.docker.com/)** or similar container engine including docker
 compose ([Rancher desktop](https://docs.rancherdesktop.io/) or [Podman](https://podman.io/))
 > ⚠️ Warning: A **rootless machine is not supported** (e.g. if you use podman,
@@ -25,28 +24,23 @@ compose ([Rancher desktop](https://docs.rancherdesktop.io/) or [Podman](https://
 
 ## 🏃‍♀️ Usage
 
-1. Clone this repository
-
+### Inital setup
 ```shell
 git clone https://github.com/i-am-bee/bee-stack.git
 cd bee-stack
+# Run setup script to configure LLM provider and start the stack
+./bee-stack.sh setup
 ```
 
-2. Configure environment and fill required variables
 
+### Commands
+You can use the following commands
 ```shell
-cp example.env .env
-vim .env # fill in your API key
+./bee-stack.sh start # start the stack (this can take a while)
+./bee-stack.sh stop  # stop the stack without removing data
+./bee-stack.sh clean # remove data
+./bee-stack.sh setup # reconfigure (e.g. to switch LLM provider)
 ```
-
-> ⚠️ Warning: If you change providers, the default bee will stop working, because it is configured with a model from the previous provider. You should create a new Bee or remove all data using `docker compose --profile all down --volumes`.
-
-3. Up! (this might take a while the first time you run it)
-
-```shell
-docker compose --profile all up -d
-```
-
 Once started you can find use the following URLs:
 
 - bee-ui: http://localhost:3000
@@ -54,30 +48,34 @@ Once started you can find use the following URLs:
 - bee-api: http://localhost:4000 (for direct use of the api, use apiKey `sk-testkey`)
 - list all open ports: `docker compose ps --format "{{.Names}}: {{.Ports}}"`
 
-You can use any typical compose commands to inspect the state of the services:
-
-```shell
-docker compose ps
-docker compose logs bee-api
-```
-
-Stopping services:
-
-```shell
-# Stop all
-docker compose --profile all down
-
-# Stop all and remove data
-docker compose --profile all down --volumes
-```
 
 ## 👷 Advanced
 
+### Manual configuration
+
+If the setup script is not working for you (e.g. you don't have bash installed), you can
+configure `.env` manually, have a look at [example.env](example.env) file.
+
+> ⚠️ Warning: If you change providers, the default bee will stop working, because it is configured with a model from the previous provider. You should create a new Bee or remove all data using `docker compose --profile all down --volumes`.
+
+### Advanced docker compose commands
+You can use any typical compose commands to inspect the state of the services:
+```shell
+# Docker
+docker compose ps
+docker compose logs bee-api
+
+# Podman
+podman compose ps
+podman compose logs bee-api
+```
+
+### For developers
 If you are a developer on `bee-api` or `bee-ui` and want to run only the supporting infrastructure,
 use the profile `infra`, e.g.:
 
 ```shell
-docker compose --profile infra up -d
+./bee-stack.sh start:infra
 ```
 
 ## Contribution guidelines
