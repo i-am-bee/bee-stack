@@ -15,17 +15,9 @@ services:
       fi &&
       node --enable-source-maps ./dist/server.js
       '
+    env_file:
+      - .env
     environment:
-      # BACKENDS
-      LLM_BACKEND: ${LLM_BACKEND:-watsonx}
-      EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-watsonx}
-      WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID}
-      WATSONX_API_KEY: ${WATSONX_API_KEY}
-      WATSONX_REGION: ${WATSONX_REGION}
-      BAM_API_KEY: ${BAM_API_KEY:-dummy}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy}
-      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
-
       MONGODB_URL: mongodb://mongo:27017?directConnection=true
       MONGODB_DATABASE_NAME: bee-api
       REDIS_URL: redis://redis:6379/0
