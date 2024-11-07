@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: iambeeagent/bee-api:0.0.5
+    image: icr.io/i-am-bee/bee-api:0.0.7
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -24,6 +24,7 @@ services:
       WATSONX_REGION: ${WATSONX_REGION}
       BAM_API_KEY: ${BAM_API_KEY:-dummy}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
 
       MONGODB_URL: mongodb://mongo:27017?directConnection=true
       MONGODB_DATABASE_NAME: bee-api
@@ -87,7 +88,7 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: iambeeagent/bee-ui-local:0.0.2
+    image: icr.io/i-am-bee/bee-ui-local:0.0.3
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
@@ -98,7 +99,7 @@ services:
       - "3000:3000"
 
   bee-observe:
-    image: iambeeagent/bee-observe:0.0.3
+    image: icr.io/i-am-bee/bee-observe:0.0.4
     depends_on:
       - mlflow
       - mongo
@@ -176,7 +177,7 @@ services:
     profiles: [ all, infra ]
 
   mlflow:
-    image: bitnami/mlflow:2.16.2
+    image: bitnami/mlflow:2.17.2
     ports:
       - '${MLFLOW_EXPOSED_PORT:-8080}:8080'
     security_opt:
