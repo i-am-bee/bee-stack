@@ -64,36 +64,59 @@ ask_yes_no() {
 
 check_docker() {
     # Check if docker or podman is installed
-    if command -v docker &>/dev/null; then
-        RUNTIME=docker
-    elif command -v podman &>/dev/null; then
-        RUNTIME=podman
-    else
-        print_error "None of supported container runtime are installed (docker, rancher or podman)"
-        printf "\n${MISSING_COMPOSE_MSG}"
-        exit 1
-    fi
+    local runtime compose_version major minor req_major req_minor
+    req_major=$(cut -d'.' -f1 <<< ${REQUIRED_COMPOSE_VERSION})
+    req_minor=$(cut -d'.' -f2 <<< ${REQUIRED_COMPOSE_VERSION})
+    
+    
+    local existing_runtimes=()
+    for runtime in docker podman; do
+      command -v "$runtime" &>/dev/null && existing_runtimes+=("$runtime")
+    done
 
-    # Check compose version
-    local compose_version major minor req_major req_minor
-    compose_version=$("$RUNTIME" compose version --short || echo "compose_not_found")
-    if [ "$compose_version" = 'compose_not_found' ]; then
-      print_error "${RUNTIME} compose extension not installed"
+    if [ ${#existing_runtimes[@]} -eq 0 ]; then
+      print_error "None of the supported container runtimes are installed (docker, rancher, or podman)"
       printf "\n${MISSING_COMPOSE_MSG}"
       exit 1
     fi
-    major=$(cut -d'.' -f1 <<< "$compose_version")
-    minor=$(cut -d'.' -f2 <<< "$compose_version")
-    req_major=$(cut -d'.' -f1 <<< ${REQUIRED_COMPOSE_VERSION})
-    req_minor=$(cut -d'.' -f2 <<< ${REQUIRED_COMPOSE_VERSION})
+    
+    local runtimes_with_compose=()
+    for runtime in "${existing_runtimes[@]}"; do
+        "$runtime" compose version --short &>/dev/null && runtimes_with_compose+=("$runtime")
+    done
+    
+    if [ ${#runtimes_with_compose[@]} -eq 0 ]; then
+      print_error "Compose extension is not installed for any of the existing runtimes: ${existing_runtimes[*]}"
+      printf "\n${MISSING_COMPOSE_MSG}"
+      exit 2
+    fi
+    
+    local compose_versions=()
+    local compose_version_ok=0
+    for runtime in "${runtimes_with_compose[@]}"; do
+      compose_version=$("$runtime" compose version --short || echo "compose_not_found")
 
-    if [ "$major" -lt "$req_major" ] || { [ "$major" -eq "$req_major" ] && [ "$minor" -lt "$req_minor" ]; }; then
-        print_error "The ${RUNTIME} compose command version ${compose_version} does not meet the required version ${REQUIRED_COMPOSE_VERSION}." \
-                    "Please update or reinstall ${RUNTIME}"
+      major=$(cut -d'.' -f1 <<< "$compose_version")
+      minor=$(cut -d'.' -f2 <<< "$compose_version")
+
+      compose_versions+=("${runtime} compose ($compose_version)")
+      if [ "$major" -gt "$req_major" ] || { [ "$major" -eq "$req_major" ] && [ "$minor" -ge "$req_minor" ]; }; then
+        compose_version_ok=1
+        break
+      fi
+    done
+
+    compose_versions_print=$(IFS=','; echo "${compose_versions[*]}" | sed 's/,/, /g')
+
+    if [ "$compose_version_ok" -eq 0 ]; then
+        print_error "None of compose command versions meets the required version ${REQUIRED_COMPOSE_VERSION}." \
+                    "Found versions: ${compose_versions_print}" \
+                    "Please (re)install a supported runtime"
         echo ""
         printf "${MISSING_COMPOSE_MSG}\n"
         exit 2
     fi
+    RUNTIME="$runtime"
 }
 
 trim() {
