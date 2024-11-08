@@ -1,6 +1,6 @@
 # 🐝 Bee Stack
 
-![Bee Stack Demo Video](./docs/assets/bee-stack-demo.gif)
+![Bee Stack Demo Video](https://media.githubusercontent.com/media/i-am-bee/bee-stack/refs/heads/assets/docs/assets/bee-stack-demo.gif)
 
 The Bee Stack repository provides everything you need to run the Bee Application Stack locally using **Docker Compose**. This setup allows you to run, test, and experiment with Bee's various components seamlessly.
 
@@ -14,7 +14,7 @@ The Bee Stack comprises the following components, each contributing distinct fun
 - [bee-ui](https://github.com/i-am-bee/bee-ui) allows you to create agents within your web browser.
 - [bee-observe](https://github.com/i-am-bee/bee-observe) and [bee-observe-connector](https://github.com/i-am-bee/bee-observe-connector) help you to trace what you are agents are doing.
 
-![architecture](./docs/assets/architecture.svg)
+![architecture](https://raw.githubusercontent.com/i-am-bee/bee-stack/refs/heads/assets/docs/assets/architecture.svg)
 
 ## 🔧 Pre-requisities
 **[Docker](https://www.docker.com/)** or similar container engine including docker
