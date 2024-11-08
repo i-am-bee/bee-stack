@@ -3,7 +3,7 @@
 # shellcheck disable=SC2059
 # disable "no variables in printf" due to color codes
 
-REQUIRED_COMPOSE_VERSION=2.29
+REQUIRED_COMPOSE_VERSION=2.26
 ORANGE='\e[1;33m'
 BLUE='\e[1;34m'
 NC='\e[0m' # No Color
