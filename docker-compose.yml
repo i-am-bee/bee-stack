@@ -38,7 +38,7 @@ services:
       S3_SECRET_ACCESS_KEY: minioadmin
       S3_BUCKET_FILE_STORAGE: bee-api
 
-      BEE_OBSERVE_API_URL: http://bee-observe:3000
+      BEE_OBSERVE_API_URL: http://bee-observe:3009
       BEE_OBSERVE_API_AUTH_KEY: observe-auth-key
 
       MILVUS_HOST: milvus
@@ -72,7 +72,7 @@ services:
       retries: 20
       start_period: 5s
     volumes:
-      - code-interpreter-storage:/storage
+      - ./code-interpreter-storage:/storage
     ports:
       - "4000:4000"
     profiles: [ all ]
@@ -102,7 +102,7 @@ services:
         node ./dist/index.js
       "
     environment:
-      PORT: 3000
+      PORT: 3009
       AUTH_KEY: observe-auth-key
       FASTIFY_BODY_LIMIT: 10485760
       REDIS_URL: redis://redis:6379/1
@@ -116,9 +116,11 @@ services:
       MLFLOW_TRACE_DELETE_IN_BATCHES_CRON_PATTERN: "0 */1 * * * *"
       MLFLOW_TRACE_DELETE_IN_BATCHES_BATCH_SIZE: 100
       NODE_ENV: production
+    ports:
+      - "3009:3009"
     profiles: [ all ]
 
-  bee-code-interpreter-k3s:
+  bee-code-interpreter-k3s: &code-interpreter-def
     image: "rancher/k3s:v1.30.5-k3s1"
     command: [ "server", "--tls-san", "bee-code-interpreter-k3s" ]
     tmpfs:
@@ -133,7 +135,7 @@ services:
     restart: always
     volumes:
       - k3s-containerd:/var/lib/rancher/k3s/agent/containerd
-      - code-interpreter-storage:/storage
+      - ./code-interpreter-storage:/storage
       - ./bee-code-interpreter.yaml:/var/lib/rancher/k3s/server/manifests/bee-code-interpreter.yaml
     ports:
       - "50051:30051"
@@ -143,6 +145,15 @@ services:
       retries: 10
       start_period: 30s
     profiles: [ all ]
+
+  # Locally mounted storage to work with local bee-api instance
+  bee-code-interpreter-k3s-infra:
+    <<: *code-interpreter-def
+    volumes:
+      - k3s-containerd:/var/lib/rancher/k3s/agent/containerd
+      - ./tmp/code-interpreter-storage:/storage
+      - ./bee-code-interpreter.yaml:/var/lib/rancher/k3s/server/manifests/bee-code-interpreter.yaml
+    profiles: [ infra ]
 
   redis:
     image: redis:7
@@ -253,5 +264,4 @@ volumes:
   redis:
   mongo:
   k3s-containerd:
-  code-interpreter-storage:
   mlflow:

@@ -1,3 +1,7 @@
+# TMP
+tmp/code-interpreter-storage/*
+tmp/code-interpreter-storage/.*
+
 ### Node template
 # Logs
 logs

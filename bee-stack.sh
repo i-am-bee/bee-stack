@@ -213,9 +213,13 @@ stop_stack() {
 
 clean_stack() {
   ${RUNTIME} compose --profile all down --volumes
+  ${RUNTIME} compose --profile infra down --volumes
+  rm -rf tmp
+  mkdir -p ./tmp/code-interpreter-storage
 }
 
 start_infra() {
+  mkdir -p ./tmp/code-interpreter-storage
   ${RUNTIME} compose --profile infra up -d
 }
 
