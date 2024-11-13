@@ -72,7 +72,7 @@ services:
       retries: 20
       start_period: 5s
     volumes:
-      - ./code-interpreter-storage:/storage
+      - code-interpreter-storage:/storage
     ports:
       - "4000:4000"
     profiles: [ all ]
