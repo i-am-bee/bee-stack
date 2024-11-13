@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: icr.io/i-am-bee/bee-api:0.0.7
+    image: icr.io/i-am-bee/bee-api:0.0.8
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -80,7 +80,7 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: icr.io/i-am-bee/bee-ui-local:0.0.3
+    image: icr.io/i-am-bee/bee-ui-local:0.0.5
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
