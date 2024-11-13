@@ -135,7 +135,7 @@ services:
     restart: always
     volumes:
       - k3s-containerd:/var/lib/rancher/k3s/agent/containerd
-      - ./code-interpreter-storage:/storage
+      - code-interpreter-storage:/storage
       - ./bee-code-interpreter.yaml:/var/lib/rancher/k3s/server/manifests/bee-code-interpreter.yaml
     ports:
       - "50051:30051"
@@ -263,5 +263,6 @@ volumes:
   milvus:
   redis:
   mongo:
+  code-interpreter-storage:
   k3s-containerd:
   mlflow:
