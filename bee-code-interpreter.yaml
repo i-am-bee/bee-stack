@@ -9,9 +9,9 @@ kind: Role
 metadata:
   name: pod-manager-role
 rules:
-  - apiGroups: [""]
-    resources: ["pods", "pods/exec"]
-    verbs: ["*"]
+  - apiGroups: [ "" ]
+    resources: [ "pods", "pods/exec" ]
+    verbs: [ "*" ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -43,6 +43,8 @@ spec:
           value: icr.io/i-am-bee/bee-code-executor:0.0.27
         - name: APP_FILE_STORAGE_PATH
           value: /storage
+        - name: APP_EXECUTOR_POD_QUEUE_TARGET_LENGTH
+          value: "1"
       volumeMounts:
         - name: storage-volume
           mountPath: /storage
