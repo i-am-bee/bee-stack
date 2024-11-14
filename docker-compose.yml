@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: icr.io/i-am-bee/bee-api:0.0.8
+    image: icr.io/i-am-bee/bee-api:0.0.9
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -48,7 +48,7 @@ services:
       MILVUS_PASSWORD: password
       MILVUS_DATABASE_NAME: default
 
-      RUN_BULLMQ_WORKERS: runs,runs:cleanup,vectorStores:cleanup,vectorStores:fileProcessor,files:extraction
+      RUN_BULLMQ_WORKERS: runs,runs:cleanup,vectorStores:cleanup,vectorStores:fileProcessor,files:extraction:node
 
       # Used to encrypt/decrypt values
       # You can use `$ openssl rand -base64 32` to generate new one
@@ -75,7 +75,36 @@ services:
       - code-interpreter-storage:/storage
     ports:
       - "4000:4000"
-    profiles: [ all ]
+    profiles: [all]
+
+  bee-api-workers-python:
+    user: root
+    depends_on:
+      redis: { condition: service_started }
+      minio: { condition: service_started }
+    image: icr.io/i-am-bee/bee-api-workers-python:0.0.9
+    env_file:
+      - .env
+    environment:
+      LOG_LEVEL: info
+
+      REDIS_URL: redis://redis:6379/0
+
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin
+      S3_BUCKET_FILE_STORAGE: bee-api
+
+      MONGODB_URL: mongodb://mongo:27017?directConnection=true
+      MONGODB_DATABASE_NAME: bee-api
+
+      RUN_BULLMQ_WORKERS: files:extraction:python
+    healthcheck:
+      test: "wget --quiet -O - http://127.0.0.1:8080/health"
+      interval: 3s
+      retries: 20
+      start_period: 5s
+    profiles: [all]
 
   bee-ui:
     depends_on:
@@ -86,7 +115,7 @@ services:
       NEXTAUTH_SECRET: top-secret
       API_URL: http://bee-api:4000
       DUMMY_JWT_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiVGVzdCBVc2VyIiwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3QiLCJhdWQiOiJiZWUtdGVzdCJ9.vwkGnl7lBbzJYk6BtoW3VoA3mnNJVI-nDQU8aK7zOH-rkf2pn5cn6CKwpq7enDInIXro8WtBLNZP8Nr8GQIZKahICuP3YrPRmzv7YIW8LuXKnx1hycg5OAtj0OtQi5FYwwCxTYW9pBF2it7XwQSBcW7yYsOrvgs7jVhThCOsavX0YiAROxZIhk1idZT4Pl3egfUI_dy9iBxcn7xocTnos-94wqJNt8oCVgB8ynj75yJFHJbiQ-9Tym_V3LcMHoEyv67Jzie8KugCgdpuF6EbQqcyfYJ83q5jJpR2LiuWMuGsNSbjjDY-f1vCSMo9L9-R8KFrDylT_BzLvRBswOzW7A"
-    profiles: [ all ]
+    profiles: [all]
     ports:
       - "3000:3000"
 
@@ -118,11 +147,11 @@ services:
       NODE_ENV: production
     ports:
       - "3009:3009"
-    profiles: [ all ]
+    profiles: [all]
 
   bee-code-interpreter-k3s: &code-interpreter-def
     image: "rancher/k3s:v1.30.5-k3s1"
-    command: [ "server", "--tls-san", "bee-code-interpreter-k3s" ]
+    command: ["server", "--tls-san", "bee-code-interpreter-k3s"]
     tmpfs:
       - /run
       - /var/run
@@ -144,7 +173,7 @@ services:
       interval: 10s
       retries: 10
       start_period: 30s
-    profiles: [ all ]
+    profiles: [all]
 
   # Locally mounted storage to work with local bee-api instance
   bee-code-interpreter-k3s-infra:
@@ -162,11 +191,11 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes:
       - redis:/data
-    profiles: [ all, infra ]
+    profiles: [all, infra]
 
   mongo:
     image: mongo:7
-    command: [ "--replSet", "rs0", "--bind_ip_all", "--port", "27017" ]
+    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
     ports:
       - 27017:27017
     healthcheck:
@@ -177,26 +206,31 @@ services:
       retries: 30
     volumes:
       - mongo:/data/db
-    profiles: [ all, infra ]
+    profiles: [all, infra]
 
   mlflow:
     image: bitnami/mlflow:2.17.2
     ports:
-      - '${MLFLOW_EXPOSED_PORT:-8080}:8080'
+      - "${MLFLOW_EXPOSED_PORT:-8080}:8080"
     security_opt:
       - "label=disable"
     environment:
       GUNICORN_CMD_ARGS: "--timeout=600"
-    entrypoint: [ "/bin/bash", "-c", "/entrypoint.sh && mlflow server --host 0.0.0.0 --port 8080" ]
+    entrypoint:
+      [
+        "/bin/bash",
+        "-c",
+        "/entrypoint.sh && mlflow server --host 0.0.0.0 --port 8080",
+      ]
     volumes:
       - mlflow:/app
       - ./mlflow-entrypoint.sh:/entrypoint.sh:ro
-    profiles: [ all, infra ]
+    profiles: [all, infra]
 
   # MILVUS dependencies
   milvus:
     image: milvusdb/milvus:v2.4.6
-    command: [ "milvus", "run", "standalone" ]
+    command: ["milvus", "run", "standalone"]
     security_opt:
       - seccomp:unconfined
     environment:
@@ -205,7 +239,7 @@ services:
     volumes:
       - milvus:/var/lib/milvus
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9091/healthz" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
       start_period: 90s
       timeout: 20s
@@ -216,7 +250,7 @@ services:
     depends_on:
       - "etcd"
       - "minio"
-    profiles: [ all, infra ]
+    profiles: [all, infra]
   etcd:
     image: quay.io/coreos/etcd:v3.5.5
     environment:
@@ -228,11 +262,11 @@ services:
       - etcd:/etcd
     command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
     healthcheck:
-      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      test: ["CMD", "etcdctl", "endpoint", "health"]
       interval: 30s
       timeout: 20s
       retries: 3
-    profiles: [ all, infra ]
+    profiles: [all, infra]
   minio:
     image: bitnami/minio:2024.10.2
     environment:
@@ -245,18 +279,18 @@ services:
     volumes:
       - minio:/bitnami/minio/data
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
-    profiles: [ all, infra ]
+    profiles: [all, infra]
   attu: # milvus UI
     image: zilliz/attu:latest
     environment:
       MILVUS_URL: milvus:19530
     ports:
       - 19531:3000
-    profiles: [ all, infra ]
+    profiles: [all, infra]
 volumes:
   etcd:
   minio:
