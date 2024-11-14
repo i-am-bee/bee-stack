@@ -51,6 +51,22 @@ Once started you can find use the following URLs:
 
 ## 👷 Advanced
 
+### Custom models
+To create a bee with a custom model other than the default for the provider, you can use the API 
+through [bee-python-sdk](https://github.com/i-am-bee/bee-python-sdk) or directly:
+
+```shell
+curl -X POST \
+  "${BEE_API:-localhost:4000}/v1/assistants" \
+  -H "Authorization: Bearer ${BEE_API_KEY:-sk-proj-testkey}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my bee with a custom model",
+    "model": "meta-llama/llama-3-1-8b-instruct"
+  }'
+```
+You can then find edit the bee in the UI (assign tools, role, etc.)
+
 ### Manual configuration
 
 If the setup script is not working for you (e.g. you don't have bash installed), you can
