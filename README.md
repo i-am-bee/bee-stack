@@ -19,6 +19,7 @@ The Bee Stack comprises the following components, each contributing distinct fun
 ## 🔧 Pre-requisities
 **[Docker](https://www.docker.com/)** or similar container engine including docker
 compose ([Rancher desktop](https://docs.rancherdesktop.io/) or [Podman](https://podman.io/))
+> ⚠️ IMPORTANT: Make sure your VM has at least 6GB of RAM configured
 > ⚠️ Warning: A **rootless machine is not supported** (e.g. if you use podman,
 > [set your VM to rootful](https://docs.podman.io/en/stable/markdown/podman-machine-set.1.html#examples))
 
