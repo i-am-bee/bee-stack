@@ -19,7 +19,7 @@ The Bee Stack comprises the following components, each contributing distinct fun
 ## 🔧 Pre-requisities
 **[Docker](https://www.docker.com/)** or similar container engine including docker
 compose ([Rancher desktop](https://docs.rancherdesktop.io/) or [Podman](https://podman.io/))
-> ⚠️ IMPORTANT: Make sure your VM has at least 6GB of RAM configured
+> ⚠️ IMPORTANT: Make sure your VM has at least 8GB of RAM configured
 
 > ⚠️ Warning: A **rootless machine is not supported** (e.g. if you use podman,
 > [set your VM to rootful](https://docs.podman.io/en/stable/markdown/podman-machine-set.1.html#examples))
@@ -50,6 +50,8 @@ Once started you can find use the following URLs:
 - bee-api: http://localhost:4000 (for direct use of the api, use apiKey `sk-testkey`)
 - list all open ports: `docker compose ps --format "{{.Names}}: {{.Ports}}"`
 
+##  ⛓️‍💥 Troubleshooting
+Please see our [troubleshoting guide](docs/troubleshooting.md) for help with the most common issues.
 
 ## 👷 Advanced
 
