@@ -9,8 +9,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-    registries: "*"
-registries:
-  icr-io:
-    type: docker-registry
-    url: icr.io
