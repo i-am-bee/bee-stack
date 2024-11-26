@@ -163,7 +163,7 @@ configure_ollama() {
   write_backend ollama
   write_env OLLAMA_URL "http://host.docker.internal:11434"
   print_header "Checking Ollama connection"
-  if ! docker run --rm -it curlimages/curl "$OLLAMA_URL"; then
+  if ! ${RUNTIME} run --rm -it curlimages/curl "$OLLAMA_URL"; then
     print_error "Ollama is not running or accessible from containers."
     printf "  Make sure you configured OLLAMA_HOST=0.0.0.0\n"
     printf "  see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server\n"
