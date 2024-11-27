@@ -38,6 +38,7 @@ spec:
       image: icr.io/i-am-bee/bee-code-interpreter:0.0.27
       ports:
         - containerPort: 50051
+        - containerPort: 8000
       env:
         - name: APP_EXECUTOR_IMAGE
           value: icr.io/i-am-bee/bee-code-executor:0.0.27
@@ -64,5 +65,10 @@ spec:
     - port: 50051
       targetPort: 50051
       nodePort: 30051
+      name: grpc
+    - port: 50081
+      targetPort: 8000
+      nodePort: 30081
+      name: http
   selector:
     app: code-interpreter
