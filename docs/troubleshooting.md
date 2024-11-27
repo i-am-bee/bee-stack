@@ -1,5 +1,9 @@
 # Common issues
 
+> If you run through the troubleshooting guide and bee-stack is still crashing, please collect
+> the logs using `./bee-stack.sh logs` and submit them to a new issue at:
+> https://github.com/i-am-bee/bee-agent-framework/issues/new?template=run_stack_issue.md
+
 ### ERROR: None of compose command versions meets the required version
 
 If you get this error message, you have a compose provider installed, but it's not the correct version.

@@ -53,6 +53,10 @@ Once started you can find use the following URLs:
 ##  ⛓️‍💥 Troubleshooting
 Please see our [troubleshoting guide](docs/troubleshooting.md) for help with the most common issues.
 
+> If you run through the troubleshooting guide and bee-stack is still crashing, please collect
+> the logs using `./bee-stack.sh logs` and submit them to a new issue at:
+> https://github.com/i-am-bee/bee-agent-framework/issues/new?template=run_stack_issue.md
+
 ## 👷 Advanced
 
 ### Custom models
