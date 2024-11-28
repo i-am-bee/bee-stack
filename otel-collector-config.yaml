@@ -1,0 +1,39 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+  # filter/observe:
+  #   traces:
+  #     span:
+  #       - 'instrumentation_scope.name == "bee-agent-framework"'
+
+exporters:
+  debug:
+    verbosity: detailed
+  # otlphttp/observe:
+  #   endpoint: http://bee-observe:4318
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    # traces/observe:
+    #   receivers: [otlp]
+    #   processors: [filter/observe]
+    #   exporters: [otlp/observe]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
