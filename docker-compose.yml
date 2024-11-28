@@ -258,7 +258,7 @@ services:
       MILVUS_URL: milvus:19530
     ports:
       - 19531:3000
-    profiles: [ all, infra ]
+    profiles: [ infra ]
 volumes:
   etcd:
   minio:

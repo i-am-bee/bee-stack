@@ -15,7 +15,8 @@ print_error() {
     printf "${ORANGE}❗ERROR: %s${NC}\n" "$1"
     shift
     [ -n "$1" ] && printf "${ORANGE}❗       %s${NC}\n" "$@"
-    true
+    printf "❗\n${ORANGE}❗Visit the troubleshooting guide:\n"
+    printf "❗${BLUE}https://github.com/i-am-bee/bee-stack/blob/main/docs/troubleshooting.md${NC}\n"
 }
 
 print_header() {
@@ -205,10 +206,12 @@ start_stack() {
   fi
 
   ${RUNTIME} compose --profile all up -d
+  printf "Done. You can visit the UI at ${BLUE}http://localhost:3000${NC}\n"
 }
 
 stop_stack() {
   ${RUNTIME} compose --profile all down
+  ${RUNTIME} compose --profile infra down
 }
 
 clean_stack() {
@@ -223,6 +226,26 @@ start_infra() {
   ${RUNTIME} compose --profile infra up -d
 }
 
+dump_logs() {
+  timestamp=$(date +"%Y-%m-%d_%H%MS")
+  folder="./logs/${timestamp}"
+  mkdir -p "${folder}"
+
+  for component in $(${RUNTIME} compose --profile all config --services); do
+    ${RUNTIME} compose logs "${component}" > "${folder}/${component}.log"
+  done
+
+  ${RUNTIME} version > "${folder}/${RUNTIME}.log"
+  ${RUNTIME} compose version > "${folder}/${RUNTIME}.log"
+
+  zip -r "${folder}.zip" "${folder}/"|| echo "Zip is not installed, please upload individual logs"
+
+  printf "${ORANGE}Logs were created in ${folder}${NC}.\n"
+  printf "If you have issues running bee-stack, please create an issue "
+  printf "and attach the file ${ORANGE}${folder}.zip${NC} at:\n"
+  printf "${BLUE}https://github.com/i-am-bee/bee-stack/issues/new?template=run_stack_issue.md${NC}\n"
+}
+
 # Main
 check_docker
 command=$(trim "$1" | tr '[:upper:]' '[:lower:]')
@@ -233,5 +256,6 @@ elif [ "$command" = 'start:infra' ]; then start_infra
 elif [ "$command" = 'stop' ]; then stop_stack
 elif [ "$command" = 'clean' ]; then clean_stack
 elif [ "$command" = 'check' ]; then check_docker
+elif [ "$command" = 'logs' ]; then dump_logs
 else print_error "Unknown command $1"
 fi
