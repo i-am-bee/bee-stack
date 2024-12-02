@@ -1,0 +1,15 @@
+dependencies:
+- name: mongodb
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.2.1
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 20.1.7
+- name: milvus
+  repository: https://milvus-io.github.io/milvus-helm
+  version: 4.0.31
+- name: mlflow
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 2.0.4
+digest: sha256:3acc8fc41a07cbffc1b52ae6861dc9df69ccd7aed99752deb00b5074e915b97c
+generated: "2024-11-01T11:40:56.896103-04:00"
