@@ -46,7 +46,7 @@ with your distribution to at least 8GB. If you use podman, you can do this using
 
 ```shell
 podman machine stop
-podman machine set --memory 8192 --rootful 
+podman machine set --memory 8192 --rootful
 podman machine start
 ```
 
@@ -59,6 +59,23 @@ podman machine stop
 podman machine set --rootful
 podman machine start
 ```
+
+### Connecting to Ollama on Linux
+
+On Linux, using Ollama with the bee-stack requires some extra configuration:
+
+1. In your `.env` file, set `OLLAMA_URL=http://host.docker.internal:11434`.
+
+2. After starting the bee-stack, you will need to resolve `OLLAMA_URL` to the bee-stack bridge network.
+
+   ```
+   # exec into bee-api container
+   docker exec -it bee-stack-bee-api-1 sh
+
+   # in container, add ip of bridge network to /etc/hosts
+   echo "$(ip route | awk '/default/ { print $3 }' | head -n 1)      host.docker.internal" | tee -a /etc/hosts > /dev/null
+   ```
+
 
 ## I'm lost
 
