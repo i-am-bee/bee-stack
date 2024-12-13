@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: icr.io/i-am-bee/bee-api:0.0.10
+    image: icr.io/i-am-bee/bee-api:0.0.17
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -13,7 +13,12 @@ services:
       if ! (echo "$$output" | grep -qiE "already seeded|success"); then
         echo "Error occured" && exit 1;
       fi &&
-      node --enable-source-maps ./dist/server.js
+      npx mikro-orm migration:up &&
+      node \
+        --enable-source-maps \
+        --experimental-loader=@opentelemetry/instrumentation/hook.mjs \
+        --import ./dist/opentelemetry.js \
+        ./dist/server.js
       '
     env_file:
       - .env
@@ -40,7 +45,7 @@ services:
       S3_SECRET_ACCESS_KEY: minioadmin
       S3_BUCKET_FILE_STORAGE: bee-api
 
-      BEE_OBSERVE_API_URL: http://bee-observe:3009
+      BEE_OBSERVE_API_URL: http://bee-observe:4318
       BEE_OBSERVE_API_AUTH_KEY: observe-auth-key
 
       MILVUS_HOST: milvus
@@ -50,19 +55,17 @@ services:
       MILVUS_PASSWORD: password
       MILVUS_DATABASE_NAME: default
 
-      RUN_BULLMQ_WORKERS: runs,runs:cleanup,vectorStores:cleanup,vectorStores:fileProcessor,files:extraction:node
+      RUN_BULLMQ_WORKERS: runs,runs-cleanup,vectorStores-cleanup,vectorStores-fileProcessor,files-extraction-node
 
       # Used to encrypt/decrypt values
       # You can use `$ openssl rand -base64 32` to generate new one
       CRYPTO_CIPHER_KEY: random_crypto_key
-      OTEL_SDK_DISABLED: true
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://collector:4318
+      BEE_FRAMEWORK_INSTRUMENTATION_ENABLED: true
+      BEE_FRAMEWORK_INSTRUMENTATION_METRICS_ENABLED: false
 
       # Required env variables used only in migrations
-      USER_ID_DEFAULT: dummy
-      PROJECT_ID_DEFAULT: proj_670cc04869ddffe24f4fd70f
-      ORGANIZATION_ID_DEFAULT: org_670cc04869ddffe24f4fd70d
-      ORGANIZATION_OWNER_ID_DEFAULT: dummy
-      PROJECT_ADMIN_ID_DEFAULT: dummy
+      IBM_ORGANIZATION_OWNER_ID: org_user_670cc04869ddffe24f4fd70e
       AUTH_CLIENT_ID: dummy
       AUTH_CLIENT_SECRET: dummy
       AUTH_SERVER_PORT: 4001
@@ -82,29 +85,37 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: icr.io/i-am-bee/bee-ui-local:0.0.6
+    image: icr.io/i-am-bee/bee-ui-local:0.0.12
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
+      NEXT_PUBLIC_USERCONTENT_SITE_URL: http://localhost:5173
       API_URL: http://bee-api:4000
+
       DUMMY_JWT_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiVGVzdCBVc2VyIiwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3QiLCJhdWQiOiJiZWUtdGVzdCJ9.vwkGnl7lBbzJYk6BtoW3VoA3mnNJVI-nDQU8aK7zOH-rkf2pn5cn6CKwpq7enDInIXro8WtBLNZP8Nr8GQIZKahICuP3YrPRmzv7YIW8LuXKnx1hycg5OAtj0OtQi5FYwwCxTYW9pBF2it7XwQSBcW7yYsOrvgs7jVhThCOsavX0YiAROxZIhk1idZT4Pl3egfUI_dy9iBxcn7xocTnos-94wqJNt8oCVgB8ynj75yJFHJbiQ-9Tym_V3LcMHoEyv67Jzie8KugCgdpuF6EbQqcyfYJ83q5jJpR2LiuWMuGsNSbjjDY-f1vCSMo9L9-R8KFrDylT_BzLvRBswOzW7A"
     profiles: [ all ]
     ports:
       - "3000:3000"
 
+  bee-usercontent-site:
+    image: icr.io/i-am-bee/bee-usercontent-site-local:0.0.10
+    profiles: [ all ]
+    ports:
+      - "5173:8080"
+
   bee-observe:
-    image: icr.io/i-am-bee/bee-observe:0.0.4
+    image: icr.io/i-am-bee/bee-observe:0.0.5
     depends_on:
       - mlflow
       - mongo
       - redis
     command: >
       /bin/sh -c "
-        npx mikro-orm --config dist/mikro-orm.config.js migration:up &&
+        touch tsconfig.json && npx mikro-orm --config dist/mikro-orm.config.js migration:up &&
         node ./dist/index.js
       "
     environment:
-      PORT: 3009
+      PORT: 4318
       AUTH_KEY: observe-auth-key
       FASTIFY_BODY_LIMIT: 10485760
       REDIS_URL: redis://redis:6379/1
@@ -119,7 +130,7 @@ services:
       MLFLOW_TRACE_DELETE_IN_BATCHES_BATCH_SIZE: 100
       NODE_ENV: production
     ports:
-      - "3009:3009"
+      - "4318:4318"
     profiles: [ all ]
 
   bee-code-interpreter-k3s: &code-interpreter-def
@@ -148,6 +159,12 @@ services:
       retries: 10
       start_period: 30s
     profiles: [ all ]
+
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.112.0
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    profiles: [ all, infra ]
 
   # Locally mounted storage to work with local bee-api instance
   bee-code-interpreter-k3s-infra:
@@ -253,13 +270,6 @@ services:
       timeout: 20s
       retries: 3
     profiles: [ all, infra ]
-  attu: # milvus UI
-    image: zilliz/attu:latest
-    environment:
-      MILVUS_URL: milvus:19530
-    ports:
-      - 19531:3000
-    profiles: [ infra ]
 volumes:
   etcd:
   minio:
