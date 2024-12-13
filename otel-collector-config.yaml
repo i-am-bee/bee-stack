@@ -1,0 +1,45 @@
+exporters:
+  debug: {}
+  otlphttp/observe:
+    compression: none
+    endpoint: http://bee-observe:4318/
+    headers:
+      x-bee-authorization: observe-auth-key
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+processors:
+  batch: { }
+  filter/observe:
+    traces:
+      span:
+        - instrumentation_scope.name != "bee-agent-framework"
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+service:
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug ]
+    metrics:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug ]
+    logs:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ debug ]
+    traces/observe:
+      exporters:
+        - otlphttp/observe
+        - debug
+      processors:
+        - batch
+      receivers:
+        - otlp
