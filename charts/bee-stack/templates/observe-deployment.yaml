@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observe-bee-stack
+  labels:
+    app.kubernetes.io/name: bee-stack
+    app.kubernetes.io/instance: observe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bee-stack
+      app.kubernetes.io/instance: observe
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bee-stack
+        app.kubernetes.io/instance: observe
+    spec:
+      serviceAccountName: bee-stack-agent
+      containers:
+        - name: bee-stack-observe
+          image: "{{ .Values.observe.image.repository }}:{{ .Values.observe.image.tag }}"
+          imagePullPolicy: {{ .Values.observe.image.pullPolicy }}
+          command: ["/bin/sh"] 
+          args: ["-c",  "npx mikro-orm --config dist/mikro-orm.config.js migration:up && node ./dist/index.js"]
+          env:
+            - name: PORT
+              value: "3000"
+            - name: AUTH_KEY
+              value: observe-auth-key
+            - name: FASTIFY_BODY_LIMIT
+              value: "10485760"
+            - name: REDIS_URL
+              value: redis://{{ .Release.Name }}-redis-master:6379/1
+            - name: MONGODB_URL
+              value: mongodb://{{ .Release.Name }}-mongodb-headless:27017?directConnection=true
+            - name: DATA_EXPIRATION_IN_DAYS
+              value: "7"
+            - name: MLFLOW_API_URL
+              value: http://{{ .Release.Name }}-mlflow-tracking:80/
+            - name: MLFLOW_DEFAULT_EXPERIMENT_ID
+              value: "0"
+            - name: MLFLOW_AUTHORIZATION
+              value: BASE_AUTH
+            - name: MLFLOW_USERNAME
+              value: user
+            - name: MLFLOW_PASSWORD
+              value: password
+            - name: MLFLOW_TRACE_DELETE_IN_BATCHES_CRON_PATTERN
+              value: "0 */1 * * * *"
+            - name: MLFLOW_TRACE_DELETE_IN_BATCHES_BATCH_SIZE
+              value: "100"
+            - name: NODE_ENV
+              value: production
+

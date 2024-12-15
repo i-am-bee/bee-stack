@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-bee-stack
+  labels:
+    app.kubernetes.io/name: bee-stack
+    app.kubernetes.io/instance: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bee-stack
+      app.kubernetes.io/instance: agent
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bee-stack
+        app.kubernetes.io/instance: agent
+    spec:
+      serviceAccountName: bee-stack-agent
+      containers:
+        - name: bee-stack-agent
+          image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag }}"
+          imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
+          command: ["/bin/sh"]
+          args: ["-c", "output=$(npx mikro-orm seeder:run 2>&1); echo \"$$output\"; if ! (echo \"$$output\" | grep -qiE \"already seeded|success\"); then echo \"Error occured\" && exit 1; fi && node --enable-source-maps ./dist/server.js"]
+          env:
+            - name: LLM_BACKEND
+              value: "{{ .Values.agent.llm.llm_backend }}"
+            - name: EMBEDDING_BACKEND
+              value: "{{ .Values.agent.llm.embedding_backend }}"
+            - name: WATSONX_PROJECT_ID
+              value: "{{ .Values.agent.llm.watsonx_project_id }}"
+            - name: WATSONX_API_KEY
+              value: "{{ .Values.agent.llm.watsonx_api_key }}"
+            - name: BAM_API_KEY
+              value: "{{ .Values.agent.llm.bam_api_key }}"
+            - name: OPENAI_API_KEY
+              value: "{{ .Values.agent.llm.openai_api_key }}"
+
+            - name: MONGODB_URL
+              value: "mongodb://{{ .Release.Name }}-mongodb-headless:27017?directConnection=true"
+            - name: MONGODB_DATABASE_NAME
+              value: bee-api
+            - name: REDIS_URL
+              value: "redis://{{ .Release.Name }}-redis-master:6379/0"
+            - name: REDIS_CACHE_URL
+              value: "redis://{{ .Release.Name }}-redis-master:6379/8"
+            - name: AUTH_JWKS_URI
+              value: "http://localhost:4000/v1/ui/jwks"
+            - name: AUTH_JWT_ISSUER
+              value: "https://localhost"
+            - name: AUTH_JWT_AUDIENCE
+              value: bee-test
+            - name: HTTP_PROXY_URL
+              value: "http://localhost:3128"
+            - name: BEE_CODE_INTERPRETER_URL
+              value: "http://bee-code-interpreter-k3s:30051"
+
+            - name: BEE_CODE_INTERPRETER_STORAGE_BACKEND
+              value: filesystem
+            - name: BEE_CODE_INTERPRETER_FILE_STORAGE_PATH
+              value: "/storage"
+            - name: SHUTDOWN_GRACEFUL_PERIOD
+              value: "1"
+
+            - name: S3_ENDPOINT
+              value: "http://minio:9000"
+            - name: S3_ACCESS_KEY_ID
+              value: minioadmin
+            - name: S3_SECRET_ACCESS_KEY
+              value: minioadmin
+            - name: S3_BUCKET_FILE_STORAGE
+              value: bee-api
+
+            - name: BEE_OBSERVE_API_URL
+              value: "http://bee-stack-observe:3000"
+            - name: BEE_OBSERVE_API_AUTH_KEY
+              value: observe-auth-key
+
+            - name: MILVUS_HOST
+              value: milvus
+            - name: MILVUS_PORT
+              value: "19530"
+            - name: MILVUS_USE_TLS
+              value: "false"
+            - name: MILVUS_USERNAME
+              value: user
+            - name: MILVUS_PASSWORD
+              value: password
+            - name: MILVUS_DATABASE_NAME
+              value: default
+
+            - name: RUN_BULLMQ_WORKERS
+              value: "runs,runs:cleanup,vectorStores:cleanup,vectorStores:fileProcessor,files:extraction"
+
+            - name: CRYPTO_CIPHER_KEY
+              value: random_crypto_key
+            - name: OTEL_SDK_DISABLED
+              value: "true"
+
+            - name: USER_ID_DEFAULT
+              value: dummy
+            - name: PROJECT_ID_DEFAULT
+              value: proj_670cc04869ddffe24f4fd70f
+            - name: ORGANIZATION_ID_DEFAULT
+              value: org_670cc04869ddffe24f4fd70d
+            - name: ORGANIZATION_OWNER_ID_DEFAULT
+              value: dummy
+            - name: PROJECT_ADMIN_ID_DEFAULT
+              value: dummy
+            - name: AUTH_CLIENT_ID
+              value: dummy
+            - name: AUTH_CLIENT_SECRET
+              value: dummy
+            - name: AUTH_SERVER_PORT
+              value: "4001"
+            - name: AUTH_WELL_KNOWN
+              value: "http://127.0.0.1:4001/.well-known/openid-configuration"
+            - name: AUTH_AUDIENCE
+              value: bee-test
+          ports:
+            - name: http
+              containerPort: 4000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+          #volumeMounts:
+          #  - mountPath: /storage
+          #    name: code-interpreter-storage
+          #    readOnly: false
+#      volumes:
+#        - name: code-interpreter-storage
+#          secret:
+#            optional: false
+#            secretName: mysecret
