@@ -41,7 +41,7 @@ spec:
         - containerPort: 8000
       env:
         - name: APP_EXECUTOR_IMAGE
-          value: icr.io/i-am-bee/bee-code-executor:0.0.27
+          value: icr.io/i-am-bee/bee-code-executor:0.0.28
         - name: APP_FILE_STORAGE_PATH
           value: /storage
         - name: APP_EXECUTOR_POD_QUEUE_TARGET_LENGTH
