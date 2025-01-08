@@ -20,11 +20,8 @@ services:
         --import ./dist/opentelemetry.js \
         ./dist/server.js
       '
-    env_file:
-      - .env
-    environment:
-      EXTRACTION_BACKEND: wdu
-
+    env_file: [ .env ]
+    environment: &api-env
       MONGODB_URL: mongodb://mongo:27017?directConnection=true
       MONGODB_DATABASE_NAME: bee-api
       REDIS_URL: redis://redis:6379/0
@@ -55,7 +52,7 @@ services:
       MILVUS_PASSWORD: password
       MILVUS_DATABASE_NAME: default
 
-      RUN_BULLMQ_WORKERS: runs,runs-cleanup,vectorStores-cleanup,vectorStores-fileProcessor,files-extraction-node
+      RUN_BULLMQ_WORKERS: runs,runs-cleanup,vectorStores-cleanup,vectorStores-fileProcessor,files-extraction-node,files-extraction-python
 
       # Used to encrypt/decrypt values
       # You can use `$ openssl rand -base64 32` to generate new one
@@ -82,16 +79,30 @@ services:
       - "4000:4000"
     profiles: [ all ]
 
+  bee-api-python-workers:
+    image: icr.io/i-am-bee/bee-api-workers-python:0.0.21-docling
+    env_file: [ .env ]
+    environment:
+      <<: *api-env
+      DOCLING_DO_TABLE_STRUCTURE: false
+      DOCLING_PDF_DO_OCR: false
+    healthcheck:
+      test: "wget --quiet -O - http://127.0.0.1:8080/health"
+      interval: 3s
+      retries: 20
+      start_period: 5s
+    profiles: [ text-extraction ]
+
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: icr.io/i-am-bee/bee-ui-local:0.0.21
+    image: icr.io/i-am-bee/bee-ui-local:0.0.22
+    env_file: [ .env ]
     environment:
       NEXTAUTH_URL: http://localhost:3000
       NEXTAUTH_SECRET: top-secret
       NEXT_PUBLIC_USERCONTENT_SITE_URL: http://localhost:5173
       API_URL: http://bee-api:4000
-
       DUMMY_JWT_TOKEN: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0IiwicHJlZmVycmVkX3VzZXJuYW1lIjoiVGVzdCBVc2VyIiwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiaXNzIjoiaHR0cHM6Ly9sb2NhbGhvc3QiLCJhdWQiOiJiZWUtdGVzdCJ9.vwkGnl7lBbzJYk6BtoW3VoA3mnNJVI-nDQU8aK7zOH-rkf2pn5cn6CKwpq7enDInIXro8WtBLNZP8Nr8GQIZKahICuP3YrPRmzv7YIW8LuXKnx1hycg5OAtj0OtQi5FYwwCxTYW9pBF2it7XwQSBcW7yYsOrvgs7jVhThCOsavX0YiAROxZIhk1idZT4Pl3egfUI_dy9iBxcn7xocTnos-94wqJNt8oCVgB8ynj75yJFHJbiQ-9Tym_V3LcMHoEyv67Jzie8KugCgdpuF6EbQqcyfYJ83q5jJpR2LiuWMuGsNSbjjDY-f1vCSMo9L9-R8KFrDylT_BzLvRBswOzW7A"
     profiles: [ all ]
     ports:

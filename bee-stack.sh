@@ -179,6 +179,17 @@ configure_openai() {
   write_env OPENAI_API_KEY
 }
 
+configure_text_extraction() {
+  echo FEATURE_FLAGS=\''{"Knowledge":true,"Files":true,"TextExtraction":true,"FunctionTools":true,"Observe":true,"Projects":true}'\' >> "$TMP_ENV_FILE"
+  echo TEXT_EXTRACTION_ENABLED=true >> "$TMP_ENV_FILE"
+  echo EXTRACTION_BACKEND=docling >> "$TMP_ENV_FILE"
+}
+
+configure_no_text_extraction() {
+  echo FEATURE_FLAGS=\''{"Knowledge":false,"Files":true,"TextExtraction":false,"FunctionTools":true,"Observe":true,"Projects":true}'\' >> "$TMP_ENV_FILE"
+  echo EXTRACTION_BACKEND=wdu >> "$TMP_ENV_FILE"
+}
+
 setup() {
   printf "🐝 Welcome to the bee-stack! You're just a few questions away from building agents!\n(Press ^C to exit)\n\n"
   rm -f "$TMP_ENV_FILE"
@@ -187,6 +198,15 @@ setup() {
   [[ $SELECTED_OPT == 'ollama' ]] && configure_ollama
   [[ $SELECTED_OPT == 'watsonx' ]] && configure_watsonx
   [[ $SELECTED_OPT == 'openai' ]] && configure_openai
+
+  text_extraction_enabled=$(ask_yes_no \
+    "Do you want to enable docling text extraction? ⚠️ Requires >= 15GB of RAM **CONFIGURED** for the container runtime ⚠️"
+  )
+  if [[ $text_extraction_enabled == 'yes' ]]; then
+    configure_text_extraction
+  else
+    configure_no_text_extraction
+  fi
 
   if [ -f ".env" ]; then
     [ "$(ask_yes_no ".env file already exists. Do you want to override it?")" = 'no' ] && exit 1
@@ -206,17 +226,24 @@ start_stack() {
   fi
 
   ${RUNTIME} compose --profile all up -d
+
+  if grep -q TEXT_EXTRACTION_ENABLED=true .env; then
+    ${RUNTIME} compose --profile text-extraction up -d
+  fi
+
   printf "Done. You can visit the UI at ${BLUE}http://localhost:3000${NC}\n"
 }
 
 stop_stack() {
   ${RUNTIME} compose --profile all down
   ${RUNTIME} compose --profile infra down
+  ${RUNTIME} compose --profile text-extraction down
 }
 
 clean_stack() {
   ${RUNTIME} compose --profile all down --volumes
   ${RUNTIME} compose --profile infra down --volumes
+  ${RUNTIME} compose --profile text-extraction down --volumes
   rm -rf tmp
   mkdir -p ./tmp/code-interpreter-storage
 }
