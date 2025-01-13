@@ -35,7 +35,7 @@ spec:
   serviceAccountName: code-interpreter-sa
   containers:
     - name: code-interpreter
-      image: icr.io/i-am-bee/bee-code-interpreter:0.0.28
+      image: icr.io/i-am-bee/bee-code-interpreter:0.0.29
       ports:
         - containerPort: 50051
         - containerPort: 8000
