@@ -121,3 +121,13 @@ You can refer to the following podman issues:
 
 Or go to the official podman troubleshooting guide:
 https://podman-desktop.io/docs/troubleshooting
+
+### Reinstalling or updating the stack
+
+If you want to remove your stack and start again fresh, you can follow these steps:
+
+* Completely remove any existing version of the stack: `./bee-stack.sh clean`
+* Pick a model that works well with bee (for example, llama3.1)
+* If using Ollama, run the model in a separate terminal window: `ollama run llama3.1`
+* Ensure your container environment has met all the [prerequisites](https://github.com/i-am-bee/bee-stack?tab=readme-ov-file#-pre-requisities)
+* Create a new version of the stack: `./bee-stack.sh start`
