@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: icr.io/i-am-bee/bee-api:0.0.21
+    image: icr.io/i-am-bee/bee-api:0.0.22
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
@@ -30,7 +30,7 @@ services:
       AUTH_JWT_ISSUER: https://localhost
       AUTH_JWT_AUDIENCE: bee-test
       HTTP_PROXY_URL: http://localhost:3128
-      BEE_CODE_INTERPRETER_URL: http://bee-code-interpreter-k3s:30051
+      BEE_CODE_INTERPRETER_URL: http://bee-code-interpreter-k3s:30081
 
       BEE_CODE_INTERPRETER_STORAGE_BACKEND: filesystem
       BEE_CODE_INTERPRETER_FILE_STORAGE_PATH: /storage
@@ -162,7 +162,6 @@ services:
       - code-interpreter-storage:/storage
       - ./bee-code-interpreter.yaml:/var/lib/rancher/k3s/server/manifests/bee-code-interpreter.yaml
     ports:
-      - "50051:30051"
       - "50081:30081"
     healthcheck:
       test: "kubectl get pod code-interpreter | grep Running"

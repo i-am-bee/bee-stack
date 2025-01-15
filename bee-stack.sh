@@ -144,13 +144,8 @@ write_env() {
 }
 
 write_backend() {
-  echo LLM_BACKEND="$1" >> "$TMP_ENV_FILE"
+  echo AI_BACKEND="$1" >> "$TMP_ENV_FILE"
   echo EMBEDDING_BACKEND="$1" >> "$TMP_ENV_FILE"
-}
-
-configure_bam() {
-  write_backend bam
-  write_env BAM_API_KEY
 }
 
 configure_watsonx() {
@@ -193,8 +188,7 @@ configure_no_text_extraction() {
 setup() {
   printf "🐝 Welcome to the bee-stack! You're just a few questions away from building agents!\n(Press ^C to exit)\n\n"
   rm -f "$TMP_ENV_FILE"
-  choose "Choose LLM provider" "watsonx" "ollama" "bam" "openai"
-  [[ $SELECTED_OPT == 'bam' ]] && configure_bam
+  choose "Choose LLM provider" "watsonx" "ollama" "openai"
   [[ $SELECTED_OPT == 'ollama' ]] && configure_ollama
   [[ $SELECTED_OPT == 'watsonx' ]] && configure_watsonx
   [[ $SELECTED_OPT == 'openai' ]] && configure_openai
