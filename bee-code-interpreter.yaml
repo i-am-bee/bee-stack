@@ -35,13 +35,12 @@ spec:
   serviceAccountName: code-interpreter-sa
   containers:
     - name: code-interpreter
-      image: icr.io/i-am-bee/bee-code-interpreter:0.0.28
+      image: icr.io/i-am-bee/bee-code-interpreter:0.0.29
       ports:
-        - containerPort: 50051
-        - containerPort: 8000
+        - containerPort: 50081
       env:
         - name: APP_EXECUTOR_IMAGE
-          value: icr.io/i-am-bee/bee-code-executor:0.0.28
+          value: icr.io/i-am-bee/bee-code-executor:0.0.29
         - name: APP_FILE_STORAGE_PATH
           value: /storage
         - name: APP_EXECUTOR_POD_QUEUE_TARGET_LENGTH
@@ -62,12 +61,8 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 50051
-      targetPort: 50051
-      nodePort: 30051
-      name: grpc
     - port: 50081
-      targetPort: 8000
+      targetPort: 50081
       nodePort: 30081
       name: http
   selector:
