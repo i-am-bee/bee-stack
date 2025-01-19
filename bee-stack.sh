@@ -155,18 +155,30 @@ configure_watsonx() {
   write_env WATSONX_REGION "us-south"
 }
 
+ollama_config_error() {
+  print_error "Ollama is not running or accessible from containers."
+  printf "  Make sure you configured OLLAMA_HOST=0.0.0.0\n"
+  printf "  see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server\n"
+  printf "  or run ollama from command line ${BLUE}OLLAMA_HOST=0.0.0.0 ollama serve${NC}\n"
+  printf "  Do not forget to pull the required LLMs ${BLUE}ollama pull llama3.1${NC}\n"
+  exit 2
+}
+
 configure_ollama() {
   write_backend ollama
   write_env OLLAMA_URL "http://host.docker.internal:11434"
   print_header "Checking Ollama connection"
-  if ! ${RUNTIME} run --rm -it curlimages/curl "$OLLAMA_URL"; then
-    print_error "Ollama is not running or accessible from containers."
-    printf "  Make sure you configured OLLAMA_HOST=0.0.0.0\n"
-    printf "  see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server\n"
-    printf "  or run ollama from command line ${BLUE}OLLAMA_HOST=0.0.0.0 ollama serve${NC}\n"
-    printf "  Do not forget to pull the required LLMs ${BLUE}ollama pull llama3.1${NC}\n"
-    exit 2
+
+  if [ "$(uname)" = "Linux" ] && grep -q OLLAMA_URL="http://host.docker.internal:11434" .env; then
+    if ! ${RUNTIME} run --rm -it --user root --entrypoint sh curlimages/curl -c "echo \"\$(ip route | awk '/default/ { print \$3 }') host.docker.internal\" >> /etc/hosts && curl ${OLLAMA_URL}"; then
+      ollama_config_error
+    fi
+  else
+    if ! ${RUNTIME} run --rm -it curlimages/curl "$OLLAMA_URL"; then
+      ollama_config_error
+    fi
   fi
+  printf "\n"
 }
 
 configure_openai() {
@@ -224,7 +236,11 @@ start_stack() {
   if grep -q TEXT_EXTRACTION_ENABLED=true .env; then
     ${RUNTIME} compose --profile text-extraction up -d
   fi
-
+  # if [ "$(uname)" = "Linux" ]; then
+  if [ "$(uname)" = "Linux" ] && grep -q AI_BACKEND="ollama" .env; then
+    printf "set host.docker.internal"
+    docker exec bee-stack-bee-api-1 sh -c "echo \"\$(ip route | awk '/default/ { print \$3 }' | head -n 1)      host.docker.internal\" | tee -a /etc/hosts > /dev/null"
+  fi
   printf "Done. You can visit the UI at ${BLUE}http://localhost:3000${NC}\n"
 }
 
