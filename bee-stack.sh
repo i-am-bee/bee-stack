@@ -236,9 +236,7 @@ start_stack() {
   if grep -q TEXT_EXTRACTION_ENABLED=true .env; then
     ${RUNTIME} compose --profile text-extraction up -d
   fi
-  # if [ "$(uname)" = "Linux" ]; then
   if [ "$(uname)" = "Linux" ] && grep -q AI_BACKEND="ollama" .env; then
-    printf "set host.docker.internal"
     docker exec bee-stack-bee-api-1 sh -c "echo \"\$(ip route | awk '/default/ { print \$3 }' | head -n 1)      host.docker.internal\" | tee -a /etc/hosts > /dev/null"
   fi
   printf "Done. You can visit the UI at ${BLUE}http://localhost:3000${NC}\n"
