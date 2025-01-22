@@ -96,7 +96,7 @@ services:
   bee-ui:
     depends_on:
       bee-api: { condition: service_healthy }
-    image: icr.io/i-am-bee/bee-ui-local:0.0.23
+    image: icr.io/i-am-bee/bee-ui-local:0.0.24
     env_file: [ .env ]
     environment:
       NEXTAUTH_URL: http://localhost:3000
