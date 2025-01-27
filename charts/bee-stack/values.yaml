@@ -1,0 +1,103 @@
+# Default values for bee-stack.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+agent:
+  image:
+    repository: "iambeeagent/bee-api"
+    pullPolicy: IfNotPresent
+    tag: "0.0.5"
+  llm:
+    llm_backend: watsonx
+    embedding_backend: watsonx 
+    watsonx_project_id:
+    watsonx_api_key:
+    bam_api_key: dummy
+    openai_api_key: dummy
+ui:
+  image:
+    repository: "iambeeagent/bee-ui-local"
+    pullPolicy: IfNotPresent
+    tag: "0.0.2"
+observe:
+  image:
+    repository: "iambeeagent/bee-observe"
+    pullPolicy: IfNotPresent
+    tag: "0.0.3"
+#
+#  mondodb configurations
+#
+mongodbEnable: true
+mongodb:
+  architecture: replicaset
+  image:
+    repository: xavidop/mongodb
+    tag: '7.0'
+  auth:
+    enabled: false
+  arbiter:
+    enabled: false
+  replicaCount: 1
+  
+#
+#  redis configurations
+#
+redisEnable: true
+redis:
+  architecture: standalone
+  auth:
+    enabled: false
+    sentinel: false
+  tls:
+    authClients: false
+#
+#  milvus configurations
+#
+milvusEnable: true
+milvus:
+  metrics:
+    enabled: false
+  proxy:
+    enabled: false
+  rootCoordinator:
+    enabled: false
+  queryCoordinator:
+    enabled: false
+  queryNode:
+    enabled: false
+  indexCoordinator:
+    enabled: false
+  indexNode:
+    enabled: false
+  dataCoordinator:
+    enabled: false
+  dataNode:
+    enabled: false
+  mixCoordinator:
+    enabled: false
+  attu:
+    enabled: true
+  minio:
+    enabled: true
+    mode: standalone
+  etcd:
+    enabled: true
+    replicaCount: 1
+  pulsar:
+    enabled: false
+#
+#  mlflow configurations
+#
+mlflowEnable: true
+mlflow:
+  tracking:
+    enabled: true
+    auth:
+      username: user
+      password: password
+  run:
+    enabled: false
+  postgresql:
+    enabled: true
+  minio:
+    enabled: false
