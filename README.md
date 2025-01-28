@@ -50,6 +50,13 @@ Once started you can find use the following URLs:
 - bee-api: http://localhost:4000 (for direct use of the api, use apiKey `sk-testkey`)
 - list all open ports: `docker compose ps --format "{{.Names}}: {{.Ports}}"`
 
+## Supported providers
+
+- Watsonx: [supported models](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/adapters/watsonx/chatPreset.ts), optimized for `meta-llama/llama-3-1-70b-instruct`
+- Ollama: any chat model, optimized for `llama3.1`
+- OpenAI: any chat model, `gpt4o` performs best
+- BAM (deprecated): [supported models](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/adapters/bam/chatPreset.ts), optimized for `meta-llama/llama-3-1-70b-instruct`
+
 ##  ⛓️‍💥 Troubleshooting
 Please see our [troubleshoting guide](docs/troubleshooting.md) for help with the most common issues.
 
