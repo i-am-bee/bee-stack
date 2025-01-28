@@ -68,8 +68,8 @@ check_docker() {
     local runtime compose_version major minor req_major req_minor
     req_major=$(cut -d'.' -f1 <<< ${REQUIRED_COMPOSE_VERSION})
     req_minor=$(cut -d'.' -f2 <<< ${REQUIRED_COMPOSE_VERSION})
-    
-    
+
+
     local existing_runtimes=()
     for runtime in docker podman; do
       command -v "$runtime" &>/dev/null && existing_runtimes+=("$runtime")
@@ -80,18 +80,18 @@ check_docker() {
       printf "\n${MISSING_COMPOSE_MSG}"
       exit 1
     fi
-    
+
     local runtimes_with_compose=()
     for runtime in "${existing_runtimes[@]}"; do
         "$runtime" compose version --short &>/dev/null && runtimes_with_compose+=("$runtime")
     done
-    
+
     if [ ${#runtimes_with_compose[@]} -eq 0 ]; then
       print_error "Compose extension is not installed for any of the existing runtimes: ${existing_runtimes[*]}"
       printf "\n${MISSING_COMPOSE_MSG}"
       exit 2
     fi
-    
+
     local compose_versions=()
     local compose_version_ok=0
     for runtime in "${runtimes_with_compose[@]}"; do
@@ -158,14 +158,22 @@ configure_watsonx() {
 configure_ollama() {
   write_backend ollama
   write_env OLLAMA_URL "http://host.docker.internal:11434"
-  print_header "Checking Ollama connection"
-  if ! ${RUNTIME} run --rm -it curlimages/curl "$OLLAMA_URL"; then
-    print_error "Ollama is not running or accessible from containers."
-    printf "  Make sure you configured OLLAMA_HOST=0.0.0.0\n"
-    printf "  see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server\n"
-    printf "  or run ollama from command line ${BLUE}OLLAMA_HOST=0.0.0.0 ollama serve${NC}\n"
-    printf "  Do not forget to pull the required LLMs ${BLUE}ollama pull llama3.1${NC}\n"
-    exit 2
+  # configuring docker internal host on linux needs to be done after pods deploy
+  # so this check will always fail for linux users
+  if [[ "$OSTYPE" != "linux-gnu" ]]; then
+    print_header "Checking Ollama connection"
+    if ! ${RUNTIME} run --rm -it curlimages/curl "$OLLAMA_URL"; then
+      print_error "Ollama is not running or accessible from containers."
+      printf "  Make sure you configured OLLAMA_HOST=0.0.0.0\n"
+      printf "  see https://github.com/ollama/ollama/blob/main/docs/faq.md#how-do-i-configure-ollama-server\n"
+      printf "  or run ollama from command line ${BLUE}OLLAMA_HOST=0.0.0.0 ollama serve${NC}\n"
+      printf "  Do not forget to pull the required LLMs ${BLUE}ollama pull llama3.1${NC}\n"
+      exit 2
+    fi
+  else
+      print_header "Configure Ollama on Linux after launch"
+      printf "  https://github.com/i-am-bee/bee-stack/blob/main/docs/troubleshooting.md#connecting-to-ollama-on-linux\n"
+      printf "  Do not forget to pull the required LLMs ${BLUE}ollama pull llama3.1${NC}\n"
   fi
 }
 
