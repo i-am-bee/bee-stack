@@ -5,7 +5,7 @@ services:
       redis: { condition: service_started }
       mongo: { condition: service_healthy }
       minio: { condition: service_started }
-    image: icr.io/i-am-bee/bee-api:0.0.22
+    image: icr.io/i-am-bee/bee-api:0.0.26
     command: >
       /bin/sh -c '
       output=$(npx mikro-orm seeder:run 2>&1);
